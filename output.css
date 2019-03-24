@@ -298,7 +298,8 @@ a:hover {
 
 .deskripsi-depan {
   width: 100%;
-  overflow: hidden;
+  overflow-y: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 15;
@@ -431,6 +432,7 @@ a:hover {
   .deskripsi-depan {
     width: 100%;
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 9;
@@ -459,6 +461,7 @@ a:hover {
   .deskripsi-depan {
     width: 100%;
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 12;

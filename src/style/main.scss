@@ -32,6 +32,13 @@ a:hover {
     color:$secondary-color !important;
 }
 
+.button-login {
+    width: 100px !important;
+    margin-left: 10px;
+    color: $primary-color;
+    border-color: $primary-color;
+}
+
 .btn-warning:hover{
     color: #212529 !important;
 }
@@ -240,6 +247,20 @@ a:hover {
     }
 }
 
+.gambar-cart {
+    position:relative;
+    overflow:hidden;
+    border: 1px solid RGBA(0,0,0,.08);
+    border-radius: 5px;
+    padding-bottom:100%;
+
+    img {
+        width: 100%;
+        object-fit: contain;
+        position: absolute;
+    }
+}
+
 .barang, .contact-us {
     margin-top: 50px;
 }
@@ -306,7 +327,7 @@ a:hover {
 .deskripsi-depan {
     width: 100%;
     overflow: hidden;
-    white-space: nowrap;
+    // white-space: nowrap;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 15;
@@ -405,10 +426,30 @@ a:hover {
     color: $primary-color;
 }
 
+.container-cart{
+    border: 0.5px solid RGBA(0,0,0,.08);
+    border-radius: 5px;
+    box-shadow: 0 3px 4px RGBA(0,0,0,.08);
+    padding: 2%;
+}
+
+.total-cart{
+    font-size: 1.2rem;
+    font-weight: 600;
+
+    .red{
+        color: red;
+    }
+}
+
 @media screen and (max-width: 1199px) {
     .flip-container, .front, .back {
         width: 100%;
         height: 480px;
+    }
+
+    .cart-items {
+        text-align: left
     }
 }
 
@@ -421,11 +462,14 @@ a:hover {
     .deskripsi-depan {
         width: 100%;
         overflow: hidden;
-        white-space: nowrap;
+        // white-space: nowrap;
         text-overflow: ellipsis;
         display: -webkit-box;
         -webkit-line-clamp: 9;
         -webkit-box-orient: vertical;
+    }
+    .cart-items {
+        text-align: left
     }
 }
 
@@ -447,12 +491,13 @@ a:hover {
     .deskripsi-depan {
         width: 100%;
         overflow: hidden;
-        white-space: nowrap;
+        // white-space: nowrap;
         text-overflow: ellipsis;
         display: -webkit-box;
         -webkit-line-clamp: 12;
         -webkit-box-orient: vertical;
     }
+
 }
 
 @media screen and (max-height: 639px) {
@@ -462,5 +507,27 @@ a:hover {
 
     .imgProfile{
         width: 50%;
+    }
+
+    .gambar-cart {
+        text-align: center;
+        border: 0.5px solid RGBA(0,0,0,.08);
+        border-radius: 5px;
+    
+        img {
+            width: 50%;
+            object-fit: contain;
+        }
+    }
+
+    .cart-items {
+        text-align: center
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .cart-items {
+        text-align: center;
+        margin: 10px 0;
     }
 }

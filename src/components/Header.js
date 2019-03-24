@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import '../style/output.css'
 import Logo from '../img/logo/logo-min.png';
-import ModalLogin from './ModalLogin';
+import ModalLogIn from './ModalLogin';
 import {withRouter} from "react-router-dom";
 import { connect } from "unistore/react";
 import { actions } from "../store";
@@ -17,6 +17,11 @@ class Header extends Component{
 		super(props);
 		this.handleModalShowClick = this.handleModalShowClick.bind(this);
 		this.handleModalCloseClick = this.handleModalCloseClick.bind(this);
+		if (localStorage.getItem('status') === undefined){
+			localStorage.setItem("status", 'public');
+			localStorage.setItem("token", '');
+			localStorage.setItem("email", '');	
+		}
 		this.state = {
 			showModal: false,
 		}
@@ -35,14 +40,27 @@ class Header extends Component{
 		})
 	}
 
+	postSignout = () => {
+		localStorage.removeItem("is_login");
+		localStorage.setItem("token", '');
+		localStorage.setItem("status", 'public');
+		localStorage.setItem("email", '');
+        this.props.history.push("/");
+    };
+
 	render(){
 		const { showModal } = this.state;
+		const is_login = JSON.parse(localStorage.getItem("is_login"));
+		const status = localStorage.getItem("status");
+		const email = localStorage.getItem("email");
+		const token = localStorage.getItem("token");
 		return(
 			<div className="Header">
 				<nav className="navbar navbar-expand-md navbar-light fixed-top bg-light">
-					<a className="navbar-brand" href="index.html">
+					<Link to="/" className="navbar-brand">
 						<img src={Logo} style={{ width: 'auto', height: '50px' }} className="d-inline-block align-top" alt=""/>
-					</a>
+						{/* <Link to='/' className='nav-link'></Link> */}
+					</Link>
 					<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
 						<span className="navbar-toggler-icon"></span>
 					</button>
@@ -51,9 +69,9 @@ class Header extends Component{
 							<div className="dropdown">
 								<a className="nav-item nav-link dropdown-toggle mr-md-2" href="#" data-toggle="dropdown">Category </a>
 								<div className="dropdown-menu">
-									<a className="dropdown-item" href="#">String</a>
-									<a className="dropdown-item" href="#">Wind</a>
-									<a className="dropdown-item" href="#">Piano</a>
+									<Link to="/category/Violin" className="dropdown-item">Violin</Link>
+									<Link to="/category/Saxophone" className="dropdown-item">Saxophone</Link>
+									<Link to="/category/Piano" className="dropdown-item">Piano</Link>
 								</div>
 							</div>
 						</div>
@@ -66,20 +84,22 @@ class Header extends Component{
 							</div>
 						</div>
 						<ul className="navbar-nav flex-row ml-md-auto d-md-flex justify-content-center">
-							<li className="nav-item dropdown">
-								<a className="nav-item nav-link dropdown-toggle mr-2" href="#" data-toggle="dropdown">My Account </a>
-								<div className="dropdown-menu dropdown-menu-right">
-									<a id ="logIn" className="dropdown-item" href="#modalLogIn" onClick={this.handleModalShowClick} data-toggle="modal" data-target="#modalLogIn">Log In</a>
-									<a id ="signUp" className="dropdown-item" href="#modalSignUp" data-toggle="modal" data-target="#modalSignUp">Sign Up</a>
-									<a className="dropdown-item" href="profile.html">Profile</a>
-									<a className="dropdown-item" href="#">Log Out</a>
-								</div>
-							</li>
-							<li className="nav-item cart">
-								<button type="button" className="btn btn-warning">
-									<span className="fa fa-shopping-cart"></span> Cart <span className="badge badge-light">40</span>
-								</button>
-							</li>
+                            <li className="nav-item cart" style={{ display: status==='user' ? 'inline-block' : 'none'}}>
+								<Link to="/cart">
+									<button type="button" className="btn btn-warning">
+										<span className="fa fa-shopping-cart"></span> Cart <span className="badge badge-light">40</span>
+									</button>
+								</Link>
+                            </li>
+							<button id ="logIn" type="button" className="btn btn-outline-warning button-login" onClick={this.handleModalShowClick} data-toggle="modal" data-target="#modalLogIn" style={{ display: status === 'public' ? 'block' : 'none' }}>Log In</button>
+							<button id ="signUp" type="button" className="btn btn-outline-warning button-login" style={{ display: status === 'public' ? 'block' : 'none'}}>Sign Up</button>
+							{/* <Link id ="logIn" className="dropdown-item" href="#modalLogIn" onClick={this.handleModalShowClick} data-toggle="modal" data-target="#modalLogIn" style={{ display: status === 'public' ? 'block' : 'none' }}>Log In</Link>
+							<Link id ="signUp" className="dropdown-item" href="#modalSignUp" data-toggle="modal" data-target="#modalSignUp" style={{ display: status === 'public' ? 'block' : 'none' }}>Sign Up</Link> */}
+							<a className="nav-item nav-link dropdown-toggle mr-2" href="#" data-toggle="dropdown" style={{ display: status === 'user' || status === 'seller' ? 'block' : 'none' }}>My Account </a>
+                            <div className="dropdown-menu dropdown-menu-right">
+                                <Link to="/profile" className="dropdown-item" style={{ display: is_login ? 'block' : 'none' }}>Profile</Link>
+                                <Link to='/' onClick={()=> this.postSignout()} style={{ display: is_login ? 'block' : 'none' }} className="dropdown-item">Log Out</Link>
+                            </div>
 						</ul>
 					</div>
 				</nav>
@@ -89,63 +109,4 @@ class Header extends Component{
 	}
 };
 
-class ModalLogIn extends Component{
-    constructor (props){
-        super(props);
-    }
-
-    componentDidMount() {
-		const { handleModalCloseClick } = this.props;
-		$(this.modal).modal('show');
-		$(this.modal).on('hidden.bs.modal', handleModalCloseClick);
-	}
-  
-	handleCloseClick() {
-		const { handleModalCloseClick } = this.props;
-		$(this.modal).modal('hide');
-		handleModalCloseClick();
-	}
-
-	doLogIn = () => {
-        this.props.postLogin().then(() => {
-            console.log("this", this);
-            // this.props.history.replace("/profile")
-        });
-    }
-  
-    render(){
-        return(
-            <div className="modal fade" ref={modal=> this.modal = modal} id="modalLogIn" tabIndex="-1" role="dialog" aria-labelledby="modalLogInTitle" aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered" role="document">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="exampleModalLongTitleLogIn">Log In</h5>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-							<form onSubmit={e => e.preventDefault()}>
-                                <div className="form-group">
-                                    <label htmlFor="email" className="col-form-label">Email:</label>
-                                    <input type="email" name="username" className="form-control" id="email" onChange={e => this.props.setField(e)}/>
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="password" className="col-form-label">Password:</label>
-                                    <input type="password" name="password" className="form-control" id="password" onChange={e => this.props.setField(e)}/>
-                                </div>
-                            </form>
-                            <span>Belum mempunyai akun? </span><a href="#modalSignUp" data-toggle="modal" data-target="#modalSignUp" data-dismiss="modal">Daftar sekarang</a>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" className="btn btn-warning" onClick={() => this.doLogIn()}>Log In</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-}
-
-export default connect("is_login", actions)(withRouter(Header));
+export default connect(actions)(withRouter(Header));
