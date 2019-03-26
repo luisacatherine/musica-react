@@ -6,8 +6,9 @@ import PaginationPage from "../components/PaginationPage";
 import Piano from '../img/img/home/piano.png';
 import '../style/output.css';
 import axios from 'axios'
+import { connect } from "unistore/react";
+import { actions } from "../store";
 
-const urlItems = 'http://localhost:5000/item'
 
 class Category extends Component {
     _isMounted = false;
@@ -20,7 +21,8 @@ class Category extends Component {
 			currentPage: 1,
 			totalPages: null,
             listBarang: [],
-            category_name: ''
+            category_name: '',
+            urlItems: this.props.baseUrl + '/item'
 		}
     }
 
@@ -32,7 +34,7 @@ class Category extends Component {
         self.setState({category_name: category_name})
         console.log(category_name)
         axios
-            .get(urlItems, {
+            .get(self.state.urlItems, {
                 params: {
                     'kategori': category_name
                 }
@@ -49,31 +51,16 @@ class Category extends Component {
     componentDidUpdate = (prevProps) => {
         const self = this
         if (this.props.match.params !== prevProps.match.params){
-            const {category_name} = this.props.match.params
-            self.setState({category_name: category_name})
-            console.log(category_name)
-            axios
-                .get(urlItems, {
-                    params: {
-                        'kategori': category_name
-                    }
-                })
-                .then(function(response){
-                    self.setState({allItems: response.data.items});
-                    console.log(response.data);
-                })
-                .catch(function(error){
-                    console.log(error);
-                });    
+            window.location.reload();
         }
     };
 
     onPageChanged = data => {
         window.scrollTo(0, 0)
         const self = this;
-		const { currentPage, totalPages, pageLimit } = data;
+        const { currentPage, totalPages, pageLimit } = data;
         axios
-            .get(urlItems, {
+            .get(self.state.urlItems, {
                 params: {
                     'rp': pageLimit,
 					'p': currentPage,
@@ -109,7 +96,7 @@ class Category extends Component {
                     <h1 className="judul-kategori">{this.state.category_name}</h1>
                 </div>
                 <div className="container barang">
-                    <Breadcrumb />
+                    <Breadcrumb link={'/category/' + this.state.category_name} judul={this.state.category_name} linkparents={'/'}/>
                     <div className="row">
                         <Filter />
                         <div className="col-md-9" >
@@ -134,7 +121,7 @@ class Category extends Component {
                     <h1 className="judul-kategori">{this.state.category_name}</h1>
                 </div>
                 <div className="container barang">
-                    <Breadcrumb />
+                    <Breadcrumb link={'/category/' + this.state.category_name} judul={this.state.category_name} linkparents={'/'}/>
                     <div className="row">
                         <Filter />
                         <div className="col-md-9" >
@@ -173,5 +160,5 @@ class Category extends Component {
     }
 }
 
-export default Category
+export default connect("baseUrl", actions)(Category);
 

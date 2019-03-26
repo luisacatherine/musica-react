@@ -215,12 +215,26 @@ a:hover {
 .gambar-produk {
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid RGBA(0, 0, 0, 0.16);
+  border: 1px solid RGBA(0, 0, 0, 0.16);
   border-radius: 5px;
   margin-bottom: 5%;
   padding-bottom: 100%;
 }
 .gambar-produk img {
+  width: 100%;
+  object-fit: contain;
+  position: absolute;
+}
+
+.gambar-front {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid RGBA(0, 0, 0, 0.16);
+  border-radius: 5px;
+  margin-bottom: 5%;
+  padding-bottom: 100%;
+}
+.gambar-front img {
   width: 100%;
   object-fit: contain;
   position: absolute;

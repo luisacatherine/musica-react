@@ -24,9 +24,9 @@ class Carousel extends Component {
                         <img className="first-slide" src={CarouselDrum} alt="First slide"/>
                         <div className="container">
                             <div className="carousel-caption text-left">
-                                <h1>Example headline.</h1>
-                                <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                                <p><a className="btn btn-warning" href="#" role="button">Sign up today</a></p>
+                                <h1>Sulit mencari perlengkapan musik?</h1>
+                                <p>Dapatkan perlengkapan musikmu dengan harga termurah dari semua penjual se-Indonesia sekarang!</p>
+                                <p><Link to='/signup/user' className="btn btn-warning" role="button">Daftar Sebagai Pembeli</Link></p>
                             </div>
                         </div>
                     </div>
@@ -34,9 +34,9 @@ class Carousel extends Component {
                         <img className="second-slide" src={CarouselSax} alt="Second slide"/>
                         <div className="container">
                             <div className="carousel-caption">
-                                <h1>Another example headline.</h1>
-                                <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                                <p><a className="btn btn-warning" href="#" role="button">Learn more</a></p>
+                                <h1>Sulit menjual produkmu?</h1>
+                                <p>Dengan bergabung sebagai penjual, Anda berkesempatan mendapat pesanan dari pecinta musik se-Indonesia!</p>
+                                <p><Link to='/signup/seller' className="btn btn-warning" role="button">Daftar Sebagai Penjual</Link></p>
                             </div>
                         </div>
                     </div>
@@ -44,9 +44,9 @@ class Carousel extends Component {
                         <img className="third-slide" src={CarouselGuitar} alt="Third slide"/>
                         <div className="container">
                             <div className="carousel-caption text-left">
-                                <h1>One more for good measure.</h1>
-                                <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-                                <p><a className="btn btn-warning" href="#" role="button">Browse gallery</a></p>
+                                <h1>Harga mahal?</h1>
+                                <p>Tenang saja! Kami menyediakan produk dengan beragam promo menarik!</p>
+                                <p><Link to='/promo' className="btn btn-warning" role="button">Saya mau!</Link></p>
                             </div>
                         </div>
                     </div>

@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import '../style/output.css'
-// import '../style/App.css'
-// import '../style/index.css'
+import '../style/output.css';
 import { connect } from 'unistore/react';
-import Produk from '../img/img/produk/gitarc315-1.jpg'
-// import { actions } from '../store';
+import { actions } from '../store';
 
 class CardFront extends Component {
     
@@ -18,12 +15,13 @@ class CardFront extends Component {
     }
 
     render(){
+        const status = localStorage.getItem("status");
         return(
             <div className="col-md-4 col-sm-6 col-6">
                 <div className="flip-container">
                     <div className="flipper">
                         <div className="front">
-                            <div className="gambar-produk">
+                            <div className="gambar-front">
                                 <img className="card-img-top" src={this.props.gambar} alt="Card image cap"/>
                             </div>
                             <div className="card-body">
@@ -43,7 +41,7 @@ class CardFront extends Component {
                                         <span className="fa fa-search"></span> Lihat Detail
                                     </button>
                                 </Link>
-                                <button type="button" className="btn btn-outline-warning">
+                                <button type="button" className="btn btn-outline-warning" style={{display: status === 'user' ? 'block' : 'none'}} onClick={() => this.props.addToCart(this.props.id, 1)}>
                                     <span className="fa fa-shopping-cart"></span> Add to Cart
                                 </button>
                             </div>
@@ -66,4 +64,4 @@ CardFront.propTypes = {
     deskripsi: PropTypes.string
 }
 
-export default CardFront
+export default connect("baseUrl", actions)(CardFront);

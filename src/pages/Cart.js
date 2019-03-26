@@ -7,10 +7,6 @@ import CartItems from '../components/CartItems';
 import { connect } from "unistore/react";
 import { actions } from "../store";
 
-
-const urlTransaksi = "http://localhost:5000/transaction"
-const urlCart = "http://localhost:5000/transdetail"
-
 class Cart extends Component{
 
     constructor(props){
@@ -23,7 +19,9 @@ class Cart extends Component{
             pilihanProvinsi: '',
             pilihanKota: '',
             pilihanPembayaran: 'cash',
-            pilihanAlamat: ''
+            pilihanAlamat: '',
+            urlTransaksi: this.props.baseUrl + '/transaction',
+            urlCart: this.props.baseUrl + '/transdetail'
 		}
     }
     
@@ -32,7 +30,7 @@ class Cart extends Component{
         const self = this;
         const token = localStorage.getItem("token");
         axios
-            .get(urlTransaksi, {
+            .get(this.state.urlTransaksi, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }, params: {
@@ -42,19 +40,22 @@ class Cart extends Component{
             .then(function(response){
                 self.setState({id_transaksi: response.data.transaction[0].id});
                 const transID = response.data.transaction[0].id
-                axios({method: 'get', url: urlCart, headers: { 'Authorization': 'Bearer ' + token }, params: {'transaction': transID}})
+
+                axios({
+                    method: 'get', 
+                    url: self.state.urlCart, 
+                    headers: { 'Authorization': 'Bearer ' + token }, 
+                    params: {'transaction': transID}})
                 .then(function(response){
                     self.setState({listTransaksi: response.data.transaction_details});
-                    console.log(response.data)
                 })
                 .catch(function(error){
                     console.log(error)
                 })
 
-                axios({ method: 'patch', url: urlTransaksi+'/' + transID, headers: { 'Authorization': 'Bearer ' + token } })
+                axios({ method: 'patch', url: self.state.urlTransaksi+'/' + transID, headers: { 'Authorization': 'Bearer ' + token } })
                 .then(function(response){
                     self.setState({transaksi: response.data.transaction})
-                    console.log(response.data)
                 })
                 .catch(function(error){
                     console.log(error)
@@ -104,11 +105,11 @@ class Cart extends Component{
         return(
             <div className='Cart'>
                 <div className="kategori-barang">
-                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}}/>
+                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}} alt='gambar-kategori'/>
                     <h1 className="judul-kategori">Cart</h1>
                 </div>
                 <div className="container barang">
-                    <Breadcrumb />
+                    <Breadcrumb link='/cart' judul={'Cart'} linkparents={'/'}/>
                     <div className="row">
                         <div className="col-12">
                             <h4 className="heading-coklat">Cart</h4>
@@ -118,11 +119,11 @@ class Cart extends Component{
                     <div className="container-cart">
                         {listTransaksi.map((item, key) => {
                             return(
-                                <CartItems key={key} id={item.product_id} harga={item.harga} qty={item.qty} nama={item.product_id} seller={item.seller_id} />
+                                <CartItems key={key} id={item.product_id} harga={item.harga} qty={item.qty} nama={item.product_id} seller={item.seller_id} trans_id={item.id}/>
                             )
                         })}
                         <div className="row total-cart">
-                            <div className="col-md-6 col-sm-6 col-12 text-right">
+                            <div className="col-md-6 col-sm-6 col-12 text-center">
                                 <span>Total: </span>
                             </div>
                             <div className="col-md-3 col-sm-3 col-6 cart-items red">
@@ -193,4 +194,4 @@ class Cart extends Component{
     }
 }
 
-export default connect("data_provinsi, data_kota", actions)(Cart);
+export default connect("baseUrl, data_provinsi, data_kota", actions)(Cart);

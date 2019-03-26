@@ -12,9 +12,6 @@ global.jQuery = $;
 
 class ModalLogIn extends Component{
     state = {email: "", password: ""};
-    constructor (props){
-        super(props);
-    }
 
     componentDidMount() {
 		const { handleModalCloseClick } = this.props;
@@ -34,8 +31,6 @@ class ModalLogIn extends Component{
 
 	doLogIn = () => {
         this.props.postLogin().then(() => {
-            console.log("this", this.props);
-            console.log("is_login", this.props.is_login);
             $(this.modal).modal('hide');
             this.props.history.push("/")
         });
@@ -48,11 +43,9 @@ class ModalLogIn extends Component{
             password: password
         };
         const self = this;
-        console.log(data);
         axios
-            .post("http://0.0.0.0:5000/login", data)
+            .post(this.props.baseUrl + "/login", data)
             .then(function(response){
-                console.log(response.data);
                 if (response.data.status === 'oke'){
                     localStorage.setItem("is_login", true);
                     localStorage.setItem("token", response.data.token);
@@ -68,7 +61,7 @@ class ModalLogIn extends Component{
             });
         $(this.modal).modal('hide');
     }
-  
+ 
     render(){
         return(
             <div className="modal fade" ref={modal=> this.modal = modal} id="modalLogIn" tabIndex="-1" role="dialog" aria-labelledby="modalLogInTitle" aria-hidden="true">
@@ -81,17 +74,21 @@ class ModalLogIn extends Component{
                             </button>
                         </div>
                         <div className="modal-body">
-							<form onSubmit={e => e.preventDefault()}>
+							<form onSubmit={e => e.preventDefault()} noValidate>
                                 <div className="form-group">
                                     <label htmlFor="email" className="col-form-label">Email:</label>
-                                    <input type="email" name="email" className="form-control" id="email" onChange={e => this.changeInput(e)}/>
+                                    <input type="email" name="email" className="form-control" id="email" onChange={e => this.changeInput(e)} required/>
+                                    <div className="valid-feedback">Success! You've done it.</div>
+                                    <div className="invalid-feedback">No, you missed this one.</div>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="password" className="col-form-label">Password:</label>
-                                    <input type="password" name="password" className="form-control" id="password" onChange={e => this.changeInput(e)}/>
+                                    <input type="password" name="password" className="form-control" id="password" onChange={e => this.changeInput(e)} required/>
+                                    <div className="valid-feedback">Success! You've done it.</div>
+                                    <div className="invalid-feedback">No, you missed this one.</div>
                                 </div>
                             </form>
-                            <span>Belum mempunyai akun? </span><a href="#modalSignUp" data-toggle="modal" data-target="#modalSignUp" data-dismiss="modal">Daftar sekarang</a>
+                            <span>Belum mempunyai akun? </span><Link to="/signup/user">Daftar sekarang</Link>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -104,4 +101,4 @@ class ModalLogIn extends Component{
     }
 }
 
-export default connect("is_login", actions)(withRouter(ModalLogIn));
+export default connect("is_login, baseUrl", actions)(withRouter(ModalLogIn));

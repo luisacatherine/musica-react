@@ -1,11 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import '../style/output.css'
-// import '../style/App.css'
-// import '../style/index.css'
-import { connect } from 'unistore/react';
-import Produk from '../img/img/produk/gitarc315-1.jpg'
-// import { actions } from '../store';
 
 class Breadcrumb extends Component {
     render(){

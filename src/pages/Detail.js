@@ -8,11 +8,11 @@ import axios from 'axios'
 import Other from '../components/Other'
 import { connect } from "unistore/react";
 import { actions } from "../store";
+import FormDiskusi from "../components/FormDiskusi";
+import ListDiskusi from "../components/ListDiskusi";
 
 
-const urlItems = 'http://localhost:5000/item'
-const urlKategori = 'http://localhost:5000/category'
-
+const status = localStorage.getItem("status");
 class Detail extends Component {
     _isMounted = false;
 
@@ -20,11 +20,16 @@ class Detail extends Component {
         super(props);
         this.state = {
             allItems: [],
+            itemCategory: [],
             itemSeller: [],
+            itemSellers: [],
+            listDiskusi: [],
             items_id: '',
             jumlah: 1,
             ongkir: 0,
-            kategori_barang: ''
+            kategori_barang: '',
+            urlItems: this.props.baseUrl + '/item',
+            urlKategori: this.props.baseUrl + '/category'
 		}
     }
 
@@ -33,6 +38,7 @@ class Detail extends Component {
         this._isMounted = true;
         window.scrollTo(0, 0)
         this.getItems();
+        this.getDiskusi();
         this.props.getProvinsi();
         this.props.getKota('Jawa Barat');
     };
@@ -41,6 +47,7 @@ class Detail extends Component {
         if (this.props.match.params !== prevProps.match.params){
             window.scrollTo(0, 0)
             this.getItems();
+            this.getDiskusi();
         }
     };
 
@@ -48,14 +55,14 @@ class Detail extends Component {
         const self = this;
         const {items_id} = this.props.match.params
         self.setState({items_id: items_id})
-        console.log(items_id)
         axios
-            .get(urlItems + '/' + items_id)
+            .get(self.state.urlItems + '/' + items_id)
             .then(function(response){
                 self.setState({allItems: response.data.items});
-                self.getKategori(1)
+                self.setState({itemCategory: response.data.items.item_category})
+                self.setState({itemSellers: response.data.items.item_seller})
                 axios
-                .get(urlItems, {
+                .get(self.state.urlItems, {
                     params: {
                         'seller_id': response.data.items.id_penjual,
                         'q': 6,
@@ -64,7 +71,6 @@ class Detail extends Component {
                 })
                 .then(function(response){
                     self.setState({itemSeller: response.data.items});
-                    console.log(response.data);
                 })
                 .catch(function(error){
                     console.log(error);
@@ -75,21 +81,10 @@ class Detail extends Component {
             });
     }
 
-    getKategori = (id_kategori) => {
-        const self = this;
-        axios({ method: 'get', url: urlKategori + '/' + id_kategori})
-        .then(function(response){
-            self.setState({kategori_barang: response.data.kategori.nama_kategori})
-        })
-        .catch(function(error){
-            console.log(error)
-        })
-    }
-
     hitungOngkir = (origin, destination, weight) => {
         const self = this;
         axios
-        .get("http://localhost:5000/ongkir", {
+        .get(this.props.baseUrl + "/ongkir", {
             params: {
                 origin: origin,
                 destination: destination,
@@ -103,6 +98,25 @@ class Detail extends Component {
             } else {
                 alert(response.data.message);
             }
+        })
+        .catch(function(error){
+            console.log(error);
+        });
+    }
+
+    getDiskusi = () => {
+        const self = this;
+        const {items_id} = this.props.match.params
+        axios({
+            method: 'get',
+            url: self.props.baseUrl+"/diskusi",
+            params: {
+                'id_produk': items_id
+            }
+        })
+        .then(function(response){
+            self.setState({listDiskusi: response.data.diskusi})
+            console.log(response.data);
         })
         .catch(function(error){
             console.log(error);
@@ -124,11 +138,13 @@ class Detail extends Component {
     onKotaChange = e => {
         const self = this
         self.setState({pilihanKota: e.target.value})
-        this.hitungOngkir(this.state.allItems.seller_city, e.target.value, this.state.allItems.berat)
+        this.hitungOngkir(this.state.itemSellers.kota, e.target.value, this.state.allItems.berat)
     }
 
     render(){
+        const status = localStorage.getItem("status");
         const {itemSeller} = this.state;
+        const {listDiskusi} = this.state;
         var list_provinsi=[];
         for(var i=0; i<this.props.data_provinsi.length; i++){
             list_provinsi.push(this.props.data_provinsi[i].nama_provinsi);
@@ -143,10 +159,10 @@ class Detail extends Component {
             <div className="Detail">
                 <div className="kategori-barang">
                     <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}}/>
-                    <h1 className="judul-kategori">{this.state.kategori_barang}</h1>
+                    <h1 className="judul-kategori">{this.state.itemCategory.nama_kategori}</h1>
                 </div>
                 <div className="container barang">
-                    <Breadcrumb />
+                    <Breadcrumb link={'/items/' + this.state.items_id} judul={this.state.allItems.nama} linkparents={'/category/' + this.state.itemCategory.nama_kategori} judulparents={this.state.itemCategory.nama_kategori}/>
                     <div className="row">
                         <div className="col-12">
                             <h4 className="heading-coklat">{this.state.allItems.nama}</h4>
@@ -165,7 +181,7 @@ class Detail extends Component {
                                     <tbody>
                                         <tr>
                                             <th scope="row">Kategori: </th>
-                                            <td>{this.state.kategori_barang}</td>
+                                            <td>{this.state.itemCategory.nama_kategori}</td>
                                         </tr>
                                         <tr>
                                             <th scope="row">Brand: </th>
@@ -179,7 +195,7 @@ class Detail extends Component {
                                             <th scope="row">Status: </th>
                                             <td>{this.state.allItems.status === 'pre-order' ? 'Pre Order' : 'Ready Stock'}</td>
                                         </tr>
-                                        <tr>
+                                        <tr style={{display: this.state.allItems.status === 'pre-order' ? 'none' : 'table-row'}}>
                                             <th scope="row">Stok: </th>
                                             <td>{this.state.allItems.stok < 0 ? 0 : this.state.allItems.stok}</td>
                                         </tr>
@@ -189,11 +205,11 @@ class Detail extends Component {
                                         </tr>
                                         <tr>
                                             <th scope="row">Penjual: </th>
-                                            <td>{this.state.allItems.seller}</td>
+                                            <td>{this.state.itemSellers.name}</td>
                                         </tr>
                                         <tr>
                                             <th scope="row">Dikirim dari: </th>
-                                            <td>{this.state.allItems.seller_city}</td>
+                                            <td>{this.state.itemSellers.kota}</td>
                                         </tr>
                                         <tr>
                                             <th scope="row">Perkiraan ongkos kirim: </th>
@@ -241,7 +257,7 @@ class Detail extends Component {
                                                         </select>
                                                     </div>
                                                     <div className="form-group col-md-6">
-                                                        <button type="submit" className="btn btn-warning" onClick={() => this.props.addToCart(this.state.items_id, this.state.jumlah)}>
+                                                        <button type="submit" className="btn btn-warning" style={{display: status === 'user' ? 'block' : 'none'}} onClick={() => this.props.addToCart(this.state.items_id, this.state.jumlah)}>
                                                             <span className="fa fa-shopping-cart"></span>Add to Cart
                                                         </button>
                                                     </div>
@@ -271,45 +287,13 @@ class Detail extends Component {
                                             <p> {this.state.allItems.deskripsi_produk} </p>
                                         </div>
                                         <div className="tab-pane fade" id="nav-diskusi" role="tabpanel" aria-labelledby="nav-diskusi-tab">
-                                            <form>
-                                                <div className="form-group text-right">
-                                                    <textarea className="form-control" id="kolomDiskusi" rows="2" placeholder="Ada pertanyaan? Diskusikan dengan penjual atau pengguna lain"></textarea>
-                                                    <button type="submit" className="btn btn-warning" style={{marginTop: '10px'}}>Tanyakan</button>
-                                                </div>
-                                            </form>
+                                            <FormDiskusi id_produk={this.state.items_id} />
                                             <hr/>
-                                            <div className="row">
-                                                <div className="col-md-1 col-sm-2 col-2 text-center">
-                                                    <img src="assets/img/photo.jpeg" width="100%" style={{borderRadius: '50%'}}/>
-                                                </div>
-                                                <div className="col-md-11 col-sm-10 col-10">
-                                                    <h6 className="heading-coklat">Nama</h6>
-                                                    <p className="tanggal-komentar"><i>9 Maret 2019, 14:37 WIB</i></p>
-                                                    <p>Apakah barang ini bisa dikirim besok pagi?</p>
-                                                    <hr/>
-                                                    <div className="row" style={{paddingTop: '10px'}}>
-                                                        <div className="col-md-1 col-sm-2 col-2 text-center">
-                                                            <img src="assets/img/photo.jpeg" width="100%" style={{borderRadius: '50%'}}/>
-                                                        </div>
-                                                        <div className="col-md-11 col-sm-10 col-10">
-                                                            <h6 className="heading-coklat">Yamaha Music ID</h6>
-                                                            <p className="tanggal-komentar"><i>9 Maret 2019, 14:59 WIB</i></p>
-                                                            <p>Bisa gan.. Silakan diorder</p>            
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <hr/>
-                                            <div className="row">
-                                                <div className="col-md-1 col-sm-2 col-2 text-center">
-                                                    <img src="assets/img/photo.jpeg" width="100%" style={{borderRadius: '50%'}}/>
-                                                </div>
-                                                <div className="col-md-11 col-sm-10 col-10">
-                                                    <h6 className="heading-coklat">Nama</h6>
-                                                    <p className="tanggal-komentar"><i>9 Maret 2019, 14:37 WIB</i></p>
-                                                    <p>Apakah barang ini bisa dikirim besok pagi?</p>
-                                                </div>
-                                            </div>
+                                            {listDiskusi.map((item, key) => {
+                                                return (
+                                                    <ListDiskusi key={key} nama={item.writer.name} tanggal={item.created_at} isi={item.isi_diskusi} photo={item.writer.photo_url}/>
+                                                )
+                                            })}
                                         </div>
                                         <div className="tab-pane fade" id="nav-review" role="tabpanel" aria-labelledby="nav-review-tab">
                                             <form>
@@ -366,4 +350,4 @@ class Detail extends Component {
     }
 }
 
-export default connect("data_provinsi, data_kota", actions)(Detail);
+export default connect("baseUrl, data_provinsi, data_kota", actions)(Detail);

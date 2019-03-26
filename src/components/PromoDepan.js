@@ -4,22 +4,21 @@ import axios from 'axios'
 import '../style/output.css'
 import CardFront from './CardFront';
 import { connect } from 'unistore/react';
-import Produk from '../img/img/produk/gitarc315-1.jpg'
-// import { actions } from '../store';
+import { actions } from '../store';
 
-const urlItems = 'http://localhost:5000/item'
 class PromoDepan extends Component {
     constructor(props){
         super(props);
         this.state = {
-			allItems: []
+            allItems: [],
+            urlItems: this.props.baseUrl + '/item'
 		}
     }
 
     componentDidMount = () => {
         const self = this;
         axios
-            .get(urlItems, {
+            .get(this.state.urlItems, {
                 params: {
                     'promo': true,
                     'q': 3
@@ -27,7 +26,6 @@ class PromoDepan extends Component {
             })
             .then(function(response){
                 self.setState({allItems: response.data.items});
-                console.log(response.data);
             })
             .catch(function(error){
                 console.log(error);
@@ -44,14 +42,14 @@ class PromoDepan extends Component {
                             <h4 className="heading-coklat judul-promo">Promo</h4>
                         </div>
                         <div className="col-md-6 col-sm-6 col-6 text-right">
-                            <a href="view.html" className="heading-coklat judul-promo">Lihat Semua</a>
+                            <Link to="/promo" className="heading-coklat judul-promo">Lihat Semua</Link>
                         </div>
                     </div>
                     <hr/>
                     <div className="row">
                         {allItems.map((item, key) => {
                             return (
-                                <CardFront key={key} id={item.id} gambar={item.photo_url} nama={item.nama} harga_promo={item.harga_promo} harga={item.harga} seller={item.seller} seller_city={item.seller_city} deskripsi={item.deskripsi_produk}/>
+                                <CardFront key={key} id={item.id} gambar={item.photo_url} nama={item.nama} harga_promo={item.harga_promo} harga={item.harga} seller={item.item_seller.name} seller_city={item.item_seller.kota} deskripsi={item.deskripsi_produk}/>
                             )
                         })}
                     </div>
@@ -61,4 +59,4 @@ class PromoDepan extends Component {
     }
 }
 
-export default PromoDepan;
+export default connect("baseUrl", actions)(PromoDepan);

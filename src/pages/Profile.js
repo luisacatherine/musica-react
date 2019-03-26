@@ -1,39 +1,90 @@
 import React, { Component } from "react";
+import { Link } from 'react-router-dom';
 import {Redirect} from "react-router-dom";
 import { connect } from "unistore/react";
 import { actions } from "../store";
-import axios from 'axios'
-
-const urlSeller = 'http://localhost:5000/seller'
-const urlUser = 'http://localhost:5000/user'
+import axios from 'axios';
+import ListTransaksi from '../components/ListTransaksi';
+import Breadcrumb from '../components/Breadcrumb';
+import Piano from '../img/img/home/piano.png';
+import ListItems from '../components/ListItems';
 
 class Profile extends Component {
+    _isMounted = false;
 
     constructor(props){
         super(props);
         this.state = {
-            profil: []
+            profil: [],
+            urlSeller: this.props.baseUrl + '/seller',
+            urlUser: this.props.baseUrl + '/user',
+            urlTransaksi: this.props.baseUrl + '/transaction',
+            urlItem: this.props.baseUrl + '/item',
+            listTransaksi: [],
+            listBarang: []
 		}
     }
 
     componentDidMount = () => {
+        this._isMounted = true;
         window.scrollTo(0, 0)
         const self = this;
         const token = localStorage.getItem("token");
         const status = localStorage.getItem("status");
         axios
-            .get(status === 'user' ? urlUser : urlSeller, {
+            .get(status === 'user' ? self.state.urlUser : self.state.urlSeller, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }
             })
             .then(function(response){
                 self.setState({profil: status === 'user' ? response.data.user : response.data.seller});
+                self.getTransaction()
+                if (status === 'seller'){
+                    self.getItems()
+                }
             })
             .catch(function(error){
                 console.log(error);
             });
     };
+
+    componentWillUnmount = () => {
+        this._isMounted = false;
+    }
+
+    getItems = () => {
+        const self = this;
+        axios
+        .get(self.state.urlItem, {
+            params: {
+                'showall': true,
+                'seller_id': self.state.profil.client_id
+        }})
+        .then(function(response){
+            self.setState({listBarang: response.data.items});
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+    }
+
+    getTransaction = () => {
+        const token = localStorage.getItem("token");
+        const self = this;
+        axios
+        .get(self.state.urlTransaksi, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        .then(function(response){
+            self.setState({listTransaksi: response.data.transaction});
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+    }
 
     render(){
         const status = localStorage.getItem("status");
@@ -43,19 +94,23 @@ class Profile extends Component {
             const email = localStorage.getItem("email");
             return(
                 <div className="Profile">
-                    <div className="container profil-user">
-                    <nav aria-label="breadcrumb">
-                        <ol className="breadcrumb lokasi">
-                            <li className="breadcrumb-item"><a href="#">Home</a></li>
-                            <li className="breadcrumb-item active" aria-current="page">Profil</li>
-                        </ol>
-                    </nav>
+                    <div className="kategori-barang">
+                        <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}}/>
+                        <h1 className="judul-kategori">Profil Saya</h1>
+                    </div>
+                    <div className="container barang">
+                        <Breadcrumb link={'/profile'} judul={'Profil Saya'} linkparents={'/'} />
                     <div className="row">
-                        <div className="col-12">
+                        <div className="col-8">
                             <h4 className="heading-coklat">Profil Saya</h4>
-                            <hr/>
+                        </div>
+                        <div className="col-4 text-right align-bottom">
+                            <Link to={status === 'seller' ? '/edit/seller/'+ this.state.profil.id : '/edit/user/'+ this.state.profil.id} >
+                                <span className="heading-coklat">Edit profil</span>
+                            </Link>
                         </div>
                     </div>
+                    <hr/>
                     <div className="row">
                         <div className="col-md-4 col-sm-3 col-12">
                             <div className="gambar-produk">
@@ -97,8 +152,8 @@ class Profile extends Component {
                                             <td>{this.state.profil.created_at}</td>
                                         </tr>
                                         <tr>
-                                            <th scope="row">Jumlah transaksi: </th>
-                                            <td>15</td>
+                                            <th scope="row">Status: </th>
+                                            <td>{status}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -114,59 +169,64 @@ class Profile extends Component {
                     </div>
                     <div className="row">
                         <div className="col-12">
-                            <div className="table-responsive">
+                            <div className="table-responsive text-center">
                                 <table className="table">
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <th>Nomor Transaksi</th>
+                                            <th>Penjual</th>
+                                            <th>Pembeli</th>
                                             <th>Tanggal Transaksi</th>
                                             <th>Status Transaksi</th>
+                                            <th style={{display : status === 'user' ? 'none': 'table-cell'}}>Update</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {this.state.listTransaksi.map((item, key) => {
+                                            return (
+                                                <ListTransaksi key={key} id={item.id} seller_id={item.seller_id} user_id={item.user_id} tanggal={item.created_at} status_transaksi={item.status_transaksi}/>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>                        
+                        </div>
+                    </div>
+                    <div className="row" style={{display: status === 'seller' ? 'flex' : 'none'}}>
+                        <div className="col-8">
+                            <h4 className="heading-coklat">Produk Saya</h4>
+                        </div>
+                        <div className="col-4 text-right align-bottom">
+                            <Link to='/newproduct' >
+                                <span className="heading-coklat">+ Tambah Produk</span>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="row" style={{display: status === 'seller' ? 'block' : 'none'}}>
+                        <div className="col-12">
+                            <div className="table-responsive text-center">
+                                <table className="table">
+                                    <thead>
                                         <tr>
-                                            <td>1</td>
-                                            <td><a href="transaction.html"> 0001/musica/2019/03/09/111</a></td>
-                                            <td>9 Maret 2019</td>
-                                            <td>Transaksi selesai</td>
+                                            <th>No</th>
+                                            <th>Nama</th>
+                                            <th>Kategori</th>
+                                            <th>Penjual</th>
+                                            <th>Stok</th>
+                                            <th>Update</th>
                                         </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td><a href="transaction.html"> 0002/musica/2019/03/09/111</a></td>
-                                            <td>9 Maret 2019</td>
-                                            <td>Menunggu konfirmasi pembayaran</td>
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td><a href="transaction.html"> 0003/musica/2019/03/09/111</a></td>
-                                            <td>9 Maret 2019</td>
-                                            <td>Pesanan sedang diproses oleh penjual</td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td><a href="transaction.html"> 0004/musica/2019/03/09/111</a></td>
-                                            <td>9 Maret 2019</td>
-                                            <td>Pesanan sedang dalam pengiriman</td>
-                                        </tr>    
+                                    </thead>
+                                    <tbody>
+                                        {this.state.listBarang.map((item, key) => {
+                                            return (
+                                                <ListItems key={key} nama={item.nama} id={item.id} seller={item.item_seller.name} category={item.item_category.nama_kategori} stok={item.stok}/>
+                                            )
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-                    <nav aria-label="Navigasi Data Transaksi">
-                        <ul className="pagination justify-content-end">
-                            <li className="page-item disabled">
-                                <a className="page-link" href="#" tabIndex="-1">Previous</a>
-                            </li>
-                            <li className="page-item active"><a className="page-link" href="#">1</a></li>
-                            <li className="page-item"><a className="page-link" href="#">2</a></li>
-                            <li className="page-item"><a className="page-link" href="#">3</a></li>
-                            <li className="page-item">
-                                <a className="page-link" href="#">Next</a>
-                            </li>
-                        </ul>
-                    </nav>   
                 </div>
             </div>
             )
@@ -174,4 +234,4 @@ class Profile extends Component {
     }
 };
 
-export default connect(actions)(Profile);
+export default connect("baseUrl", actions)(Profile);

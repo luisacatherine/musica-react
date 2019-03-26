@@ -116,7 +116,7 @@ class PaginationPage extends Component {
   render() {
     if (!this.totalRecords) return null;
 
-    if (this.totalPages === 1) return null;
+    // if (this.totalPages === 1) return null;
 
     const { currentPage } = this.state;
     const pages = this.fetchPageNumbers();

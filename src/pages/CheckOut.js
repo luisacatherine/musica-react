@@ -3,11 +3,11 @@ import Breadcrumb from '../components/Breadcrumb';
 import TransItems from "../components/TransItems";
 import Piano from '../img/img/home/piano.png';
 import '../style/output.css';
-import axios from 'axios'
+import axios from 'axios';
+import { connect } from "unistore/react";
+import { actions } from "../store";
 
-const urlTransaksi = "http://localhost:5000/transaction"
-const urlCart = "http://localhost:5000/transdetail"
-const urlPUser = 'http://localhost:5000/public/user'
+
 const token = localStorage.getItem("token");
 const email = localStorage.getItem("email");
 
@@ -19,7 +19,10 @@ class CheckOut extends Component {
             id_transaksi: 0,
             listTransaksi: [],
             transaksi: '',
-            nama_user:''
+            nama_user:'',
+            urlTransaksi: this.props.baseUrl + '/transaction',
+            urlCart: this.props.baseUrl + '/transdetail',
+            urlPUser: this.props.baseUrl + '/public/user'
 		}
     }
 
@@ -27,7 +30,7 @@ class CheckOut extends Component {
         window.scrollTo(0, 0)
         const self = this;
         axios
-            .get(urlTransaksi, {
+            .get(this.state.urlTransaksi, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 }, params: {
@@ -35,9 +38,10 @@ class CheckOut extends Component {
                 }
             })
             .then(function(response){
+                console.log(response.data)
                 self.setState({id_transaksi: response.data.transaction[0].id});
                 const transID = response.data.transaction[0].id
-                axios({method: 'get', url: urlCart, headers: { 'Authorization': 'Bearer ' + token }, params: {'transaction': transID}})
+                axios({method: 'get', url: self.state.urlCart, headers: { 'Authorization': 'Bearer ' + token }, params: {'transaction': transID}})
                 .then(function(response){
                     self.setState({listTransaksi: response.data.transaction_details});
                 })
@@ -45,10 +49,11 @@ class CheckOut extends Component {
                     console.log(error)
                 })
 
-                axios({ method: 'get', url: urlTransaksi+'/' + transID, headers: { 'Authorization': 'Bearer ' + token } })
+                axios({ method: 'get', url: self.state.urlTransaksi+'/' + transID, headers: { 'Authorization': 'Bearer ' + token } })
                 .then(function(response){
                     self.setState({transaksi: response.data.transaction})
                     self.getUser(response.data.transaction.user_id)
+                    self.props.getStatus(response.data.transaction.status_transaksi)
                 })
                 .catch(function(error){
                     console.log(error)
@@ -61,7 +66,7 @@ class CheckOut extends Component {
 
     getUser = (id_user) => {
         const self = this;
-        axios({ method: 'get', url: urlPUser + '/' + id_user})
+        axios({ method: 'get', url: self.state.urlPUser + '/' + id_user})
         .then(function(response){
             self.setState({nama_user: response.data.user.name})
         })
@@ -75,7 +80,7 @@ class CheckOut extends Component {
         return(
             <div className="CheckOut">
                 <div className="kategori-barang">
-                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}}/>
+                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}} alt="gambar-kategori"/>
                     <h1 className="judul-kategori">Terima Kasih!</h1>
                 </div>
                 <div className="container barang">
@@ -125,7 +130,7 @@ class CheckOut extends Component {
                                         <tr>
                                             <th scope="row"><span>Status Transaksi</span></th>
                                             <td>:</td>
-                                            <td>{this.state.transaksi.status_transaksi}</td>
+                                            <td>{this.props.data_status.status}</td>
                                         </tr> 
                                     </tbody>
                                 </table>            
@@ -163,7 +168,7 @@ class CheckOut extends Component {
                                                     <span>Total:</span>
                                                 </td>
                                                 <td>
-                                                    <span className="harga-promo">Rp {this.state.transaksi.total_harga}</span>
+                                                    <span className="harga-promo">Rp {this.state.transaksi.total_harga + this.state.transaksi.total_ongkir}</span>
                                                 </td>    
                                             </tr>
                                         </tbody>
@@ -180,4 +185,4 @@ class CheckOut extends Component {
     }
 }
 
-export default CheckOut
+export default connect("baseUrl, data_provinsi, data_kota, data_status", actions)(CheckOut);

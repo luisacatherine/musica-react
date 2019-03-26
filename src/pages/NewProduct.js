@@ -19,9 +19,7 @@ class NewProduct extends Component {
     }
 
     componentDidMount(){
-        window.scrollTo(0, 0)
-        const self = this;
-        
+        window.scrollTo(0, 0)       
         this.props.getKategori();
     }
 
@@ -35,7 +33,8 @@ class NewProduct extends Component {
     };
 
     postProduct = () => {
-        const { nama_produk, photo_url, kategori_produk, merkProduk, beratProduk, hargaProduk, hargaPromo, showProduk, deskripsiProduk, statusProduk, stokProduk, promoProduk } = this.state;
+        const token = localStorage.getItem("token");
+        const { nama_produk, photo_url, merkProduk, beratProduk, hargaProduk, hargaPromo, showProduk, deskripsiProduk, statusProduk, stokProduk, promoProduk } = this.state;
         const data = {
             kategori: this.state.pilihanKategori,
             nama: nama_produk,
@@ -53,7 +52,7 @@ class NewProduct extends Component {
         const self = this;
         console.log(data);
         axios
-            .post("http://localhost:5000/item", data, {
+            .post(self.props.baseUrl + "/item", data, {
                 headers: {
                 'Authorization': 'Bearer ' + token
                 }})
@@ -91,18 +90,18 @@ class NewProduct extends Component {
                                 <div className="form-row">
                                     <div className="form-group col-md-9">
                                         <label htmlFor="namaProduk" className="col-form-label">Nama Produk:</label>
-                                        <input type="text" className="form-control" id="namaProduk" name="nama_produk" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="namaProduk" name="nama_produk" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                     <div className="form-group col-md-3">
                                         <label htmlFor="fotoProduk" className="col-form-label">URL Foto Produk:</label>
-                                        <input type="text" className="form-control" id="fotoProduk" name="photo_url" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="fotoProduk" name="photo_url" onChange={e => this.changeInput(e)} required/>
                                     </div>
                     
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group col-md-3">
                                         <label htmlFor="kategori_produk" className="col-form-label">Kategori:</label>
-                                        <select className="form-control" id="kategori_produk" name="kategori_produk" value={this.state.pilihanKategori} onChange={e => this.onKategoriChange(e)}>
+                                        <select className="form-control" id="kategori_produk" name="kategori_produk" value={this.state.pilihanKategori} onChange={e => this.onKategoriChange(e)} required>
                                             {list_kategori.map((item, key) => {
                                                 return (
                                                     <option key={key} value={item}>{item}</option>
@@ -112,56 +111,56 @@ class NewProduct extends Component {
                                     </div>
                                     <div className="form-group col-md-6">
                                         <label htmlFor="merkProduk" className="col-form-label">Brand Produk:</label>
-                                        <input type="text" className="form-control" id="merkProduk" name="merkProduk" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="merkProduk" name="merkProduk" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                     <div className="form-group col-md-3">
                                         <label htmlFor="beratProduk" className="col-form-label">Berat Produk (gr):</label>
-                                        <input type="text" className="form-control" id="beratProduk" name="beratProduk" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="beratProduk" name="beratProduk" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group col-md-4">
                                         <label htmlFor="hargaProduk" className="col-form-label">Harga Produk:</label>
-                                        <input type="text" className="form-control" id="hargaProduk" name="hargaProduk" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="hargaProduk" name="hargaProduk" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                     <div className="form-group col-md-4">
                                         <label htmlFor="statusProduk" className="col-form-label">Status:</label>
-                                        <select className="form-control" id="statusProduk" name="statusProduk" onChange={e => this.changeInput(e)}>
+                                        <select className="form-control" id="statusProduk" name="statusProduk" onChange={e => this.changeInput(e)} required>
                                             <option value="pre-order">Pre-order</option>
                                             <option value="ready">Ready Stock</option>
                                         </select>
                                     </div>
                                     <div className="form-group col-md-4">
                                         <label htmlFor="stokProduk" className="col-form-label">Stok Produk:</label>
-                                        <input type="text" className="form-control" id="stokProduk" name="stokProduk" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="stokProduk" name="stokProduk" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="deskripsiProduk" className="col-form-label">Deskripsi Produk:</label>
-                                    <textarea className="form-control" id="deskripsiProduk" name="deskripsiProduk" rows="5" onChange={e => this.changeInput(e)}></textarea>
+                                    <textarea className="form-control" id="deskripsiProduk" name="deskripsiProduk" rows="5" onChange={e => this.changeInput(e)} required></textarea>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group col-md-4">
                                         <label htmlFor="promoProduk" className="col-form-label">Promo:</label>
-                                        <select className="form-control" id="promoProduk" name="promoProduk" onChange={e => this.changeInput(e)}>
+                                        <select className="form-control" id="promoProduk" name="promoProduk" onChange={e => this.changeInput(e)} required>
                                             <option value="true">Ya</option>
                                             <option value="false">Tidak</option>
                                         </select>
                                     </div>
                                     <div className="form-group col-md-4">
                                         <label htmlFor="hargaPromo" className="col-form-label" >Harga Promo:</label>
-                                        <input type="text" className="form-control" id="hargaPromo" name="hargaPromo" onChange={e => this.changeInput(e)}/>
+                                        <input type="text" className="form-control" id="hargaPromo" name="hargaPromo" onChange={e => this.changeInput(e)} required/>
                                     </div>
                                     <div className="form-group col-md-4">
                                         <label htmlFor="showProduk" className="col-form-label" >Tampilkan Produk:</label>
-                                        <select className="form-control" id="showProduk" name="showProduk"onChange={e => this.changeInput(e)}>
+                                        <select className="form-control" id="showProduk" name="showProduk"onChange={e => this.changeInput(e)} required>
                                             <option value="true">Ya</option>
                                             <option value="false">Tidak</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div className="form-check">
-                                    <input type="checkbox" className="form-check-input" id="syaratSeller"/>
+                                    <input type="checkbox" className="form-check-input" id="syaratSeller" required/>
                                     <label className="form-check-label" htmlFor="syaratSeller">Dengan ini saya menyatakan telah membaca serta menyetujui <a href="terms-seller.html">syarat dan ketentuan</a> yang berlaku</label>
                                 </div>
                                 <br/>
@@ -177,4 +176,4 @@ class NewProduct extends Component {
     }
 }
 
-export default connect("data_kategori", actions)(NewProduct);
+export default connect("data_kategori, baseUrl", actions)(NewProduct);

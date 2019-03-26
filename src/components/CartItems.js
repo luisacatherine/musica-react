@@ -3,23 +3,26 @@ import PropTypes from 'prop-types';
 import '../style/output.css'
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { connect } from "unistore/react";
+import { actions } from "../store";
 
-const urlItems = 'http://localhost:5000/item'
-const urlPSeller = "http://localhost:5000/public/seller"
 class CartItems extends Component {
 
     constructor(props){
         super(props);
         this.state = {
             item: '',
-            seller_name: ''
+            seller_name: '',
+            urlItems: this.props.baseUrl + '/item',
+            urlPSeller: this.props.baseUrl + '/public/seller',
+            urlTransDetail: this.props.baseUrl + '/transdetail/'
 		}
     }
 
     componentDidMount = () => {
         const self = this;
         axios
-            .get(urlItems + '/' + this.props.id)
+            .get(self.state.urlItems + '/' + this.props.id)
             .then(function(response){
                 self.setState({item: response.data.items})
             })
@@ -27,13 +30,29 @@ class CartItems extends Component {
                 console.log(error);
             });
         axios
-            .get(urlPSeller + '/' + this.props.seller)
+            .get(self.state.urlPSeller + '/' + this.props.seller)
             .then(function(response){
                 self.setState({seller_name: response.data.seller.name})
             })
             .catch(function(error){
                 console.log(error)
             })
+    };
+
+    deleteCart = (trans_id) => {
+        const self = this
+        const token = localStorage.getItem("token");
+        axios({
+            method: 'delete',
+            url: self.state.urlTransDetail + trans_id,
+            headers: {'Authorization': 'Bearer ' + token}
+        })
+        .then(function(response){
+            window.location.reload();
+        })
+        .catch(function(error){
+            console.log(error)
+        })
     };
 
     render(){
@@ -46,7 +65,7 @@ class CartItems extends Component {
                     <div className="col-md-2 col-sm-2 col-4">
                         <div className="gambar-cart">
                             <div className="imgProfile">
-                                <img src={item.photo_url}/>
+                                <img src={item.photo_url} alt={'item'}/>
                             </div>
                         </div>
                     </div>
@@ -62,6 +81,9 @@ class CartItems extends Component {
                     </div>
                     <div className="col-md-3 col-sm-3 col-6 cart-items">
                         <span className="harga-promo">Rp {this.props.harga}</span>
+                        <button type="button" className="close" onClick={() => this.deleteCart(this.props.trans_id)}>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                 </div>
                 <hr/>
@@ -76,7 +98,8 @@ CartItems.propTypes = {
     qty: PropTypes.number,
     harga: PropTypes.number,
     toko: PropTypes.string,
-    seller: PropTypes.number
+    seller: PropTypes.number,
+    trans_id: PropTypes.number
 }
 
-export default CartItems
+export default connect("baseUrl", actions)(CartItems);

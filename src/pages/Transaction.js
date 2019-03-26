@@ -1,198 +1,182 @@
-import React, { Component } from 'react'
-import axios from 'axios'
+import React, { Component } from 'react';
 import Breadcrumb from '../components/Breadcrumb';
-import { Link } from 'react-router-dom';
+import TransItems from "../components/TransItems";
 import Piano from '../img/img/home/piano.png';
+import '../style/output.css';
+import axios from 'axios';
+import { connect } from "unistore/react";
+import { actions } from "../store";
 
 
-const urlTransaksi = "http://localhost:5000/transaction"
-const urlTransaction = "http://localhost:5000/transdetail"
+const token = localStorage.getItem("token");
 
-class Transaction extends Component{
+class Transaction extends Component {
 
     constructor(props){
         super(props);
         this.state = {
-            id_transaksi: 0,
-            listTransaksi: []
-		}
+            transaction_id: '',
+            transaksi: '',
+            listTransaksi: [],
+            nama_user:'',
+            nama_seller: '',
+            urlTransaksi: this.props.baseUrl + '/transaction',
+            urlCart: this.props.baseUrl + '/transdetail',
+            urlPUser: this.props.baseUrl + '/public/user',
+            urlPSeller: this.props.baseUrl + '/public/seller',
+        }
     }
-    
+
     componentDidMount() {
         window.scrollTo(0, 0)
+        const {transaction_id} = this.props.match.params;
+        this.setState({transaction_id: transaction_id})
         const self = this;
-        const token = localStorage.getItem("token");
-        axios
-            .get(urlTransaksi, {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }, params: {
-                    'status_transaksi': 0
-                }
-            })
-            .then(function(response){
-                self.setState({id_transaksi: response.data.transaction[0].id});
-                axios
-                .get(urlTransaction, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }, params: {
-                        'transaction': response.data.transaction[0].id
-                    }
-                })
-                .then(function(response){
-                    self.setState({listTransaksi: response.data.transaction_details});
-                    console.log(response.data)
-                })
-                .catch(function(error){
-                    console.log(error)
-                })        
-            })
-            .catch(function(error){
-                console.log(error);
-            });
+
+        axios({method: 'get', url: self.state.urlCart, headers: { 'Authorization': 'Bearer ' + token }, params: {'transaction': transaction_id}})
+        .then(function(response){
+            self.setState({listTransaksi: response.data.transaction_details});
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+
+        axios({ method: 'get', url: self.state.urlTransaksi+'/' + transaction_id, headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(response){
+            console.log(response.data)
+            self.setState({transaksi: response.data.transaction})
+            self.getUser(response.data.transaction.user_id)
+            self.getSeller(response.data.transaction.seller_id)
+            self.props.getStatus(response.data.transaction.status_transaksi)
+        })
+        .catch(function(error){
+            console.log(error)
+        })
     }
-    
+
+    getUser = (id_user) => {
+        const self = this;
+        axios({ method: 'get', url: self.state.urlPUser + '/' + id_user})
+        .then(function(response){
+            console.log(response.data)
+            self.setState({nama_user: response.data.user.name})
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+    }
+
+    getSeller = (id_seller) => {
+        const self = this;
+        axios({ method: 'get', url: self.state.urlPSeller + '/' + id_seller})
+        .then(function(response){
+            console.log(response.data)
+            self.setState({nama_seller: response.data.seller.name})
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+    }
+
     render(){
         const {listTransaksi} = this.state;
         return(
-            <div className='Transaction'>
+            <div className="Transaction">
                 <div className="kategori-barang">
-                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}}/>
-                    <h1 className="judul-kategori">Transaction</h1>
+                    <img className="gambar-kategori-satuan" src={Piano} style={{width: '100%'}} alt='gambar-kategori'/>
+                    <h1 className="judul-kategori">Transaksi {this.state.transaction_id} </h1>
                 </div>
                 <div className="container barang">
-                    <Breadcrumb />
+                    <Breadcrumb link={'/Transaction' + this.state.transaction_id} judul={'Transaksi ' + this.state.transaction_id} linkparents={'/'}/>
                     <div className="row">
                         <div className="col-12">
-                            <h4 className="heading-coklat">{this.state.listTransaksi.nama}</h4>
+                            <h4 className="heading-coklat">Transaksi {this.state.transaction_id}</h4>
                             <hr/>
                         </div>
                     </div>
-                    <div className="row">
-                        <div className="col-md-6 col-sm-12">
-                            <table className="tabel-transaksi">
-                                <tbody>
-                                    <tr>
-                                        <th scope="row"><span>Nama Pembeli</span></th>
-                                        <td>:</td>
-                                        <td><a href="profile.html">Luisa Catherine</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row"><span>Alamat Email</span></th>
-                                        <td>:</td>
-                                        <td><span>luisacatherine@gmail.com</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row"><span>Alamat Pengiriman</span></th>
-                                        <td>:</td>
-                                        <td><span>Taman Kopo Indah II B2-16</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row" style={{color: "white"}}>Metode Pembayaran</th>
-                                        <td style={{color: "white"}}>:</td>
-                                        <td>Kota Bandung</td>
-                                    </tr> 
-                                </tbody>
-                            </table>                   
-                        </div>
-                        <div className="col-md-6 col-sm-12">
-                            <table className="tabel-transaksi">
-                                <tbody>
-                                    <tr>
-                                        <th scope="row"><span>Metode Pembayaran</span></th>
-                                        <td>:</td>
-                                        <td><span>Kartu Kredit</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row"><span>Status Pembayaran</span></th>
-                                        <td>:</td>
-                                        <td><span>Terverifikasi</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row"><span>Status Pengiriman</span></th>
-                                        <td>:</td>
-                                        <td><span>Telah sampai di tujuan</span></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row"><span>Status Transaksi</span></th>
-                                        <td>:</td>
-                                        <td>Selesai</td>
-                                    </tr> 
-                                </tbody>
-                            </table>            
-                        </div>
-                    </div>
-                    <br/>
-                    <div className="row">
-                        <div className="col-12">
-                            <div className="table-responsive">
-                                <table className="table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Item</th>
-                                            <th>Harga</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
+                    <div className="container-cart">
+                        <div className="row">
+                            <div className="col-md-6 col-sm-12">
+                                <table className="tabel-transaksi">
                                     <tbody>
                                         <tr>
-                                            <td> 
-                                                <div className="gambar-produk">
-                                                    <div className="imgProfile">
-                                                        <img src="assets/img/produk/gitarc315-2.jpg"/>
-                                                    </div>
-                                                </div>            
-                                            </td>
-                                            <td><h6 className="heading-coklat">Gitar Yamaha C315</h6>
-                                                <span className="nama-penjual">Qty: 2</span><br/>
-                                                <span className="nama-penjual">Yamaha Music ID</span>
-                                            </td>
-                                            <td>
-                                                <span>2 x Rp 750,000</span>
-                                            </td>
-                                            <td>
-                                                <span className="harga-promo">Rp 1,500,000</span>
-                                            </td>
+                                            <th scope="row"><span>Nama Pembeli</span></th>
+                                            <td>:</td>
+                                            <td>{this.state.nama_user}</td>
                                         </tr>
                                         <tr>
-                                            <td> 
-                                                <div className="gambar-produk">
-                                                    <div className="imgProfile">
-                                                        <img src="assets/img/exp-gallery/phil-desforges-1322844-unsplash.jpg"/>
-                                                    </div>
-                                                </div>            
-                                            </td>
-                                            <td><h6 className="heading-coklat">Gitar Yamaha C315</h6>
-                                                <span className="nama-penjual">Qty: 2</span><br/>
-                                                <span className="nama-penjual">Yamaha Music ID</span>
-                                            </td>
-                                            <td>
-                                                <span>2 x Rp 750,000</span>
-                                            </td>
-                                            <td>
-                                                <span className="harga-promo">Rp 1,500,000</span>
-                                            </td>
+                                            <th scope="row"><span>Nama Penjual</span></th>
+                                            <td>:</td>
+                                            <td><span>{this.state.nama_seller}</span></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="3" style={{textAlign: 'right', fontWeight: "600"}}>
-                                                <span>Biaya Pengiriman:</span>
-                                            </td>
-                                            <td>
-                                                <span className="harga-promo">Rp 22,000</span>
-                                            </td>
+                                            <th scope="row"><span>Alamat Pengiriman</span></th>
+                                            <td>:</td>
+                                            <td><span>{this.state.transaksi.alamat}</span></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="3" style={{textAlign: 'right', fontWeight: "600"}}>
-                                                <span>Total:</span>
-                                            </td>
-                                            <td>
-                                                <span className="harga-promo">Rp 3,022,000</span>
-                                            </td>    
-                                        </tr>
+                                            <th scope="row" style={{color: "white"}}></th>
+                                            <td style={{color: "white"}}></td>
+                                            <td>{this.state.transaksi.kota}</td>
+                                        </tr> 
                                     </tbody>
-                                </table>
+                                </table>                   
+                            </div>
+                            <div className="col-md-6 col-sm-12">
+                                <table className="tabel-transaksi">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row"><span>Metode Pembayaran</span></th>
+                                            <td>:</td>
+                                            <td><span>{this.state.transaksi.payment_method}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row"><span>Status Transaksi</span></th>
+                                            <td>:</td>
+                                            <td>{this.props.data_status.status}</td>
+                                        </tr> 
+                                    </tbody>
+                                </table>            
+                            </div>
+                        </div>
+                        <br/>
+                        <div className="row">
+                            <div className="col-12">
+                                <div className="table-responsive">
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Item</th>
+                                                <th>Harga</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        {listTransaksi.map((item, key) => {
+                                            return(
+                                                <TransItems key={key} id={item.product_id} harga={item.harga} qty={item.qty} nama={item.product_id} seller={item.seller_id} />
+                                            )
+                                        })}
+                                            <tr>
+                                                <td colSpan="3" style={{textAlign: 'right', fontWeight: "600"}}>
+                                                    <span>Biaya Pengiriman:</span>
+                                                </td>
+                                                <td>
+                                                    <span className="harga-promo">Rp {this.state.transaksi.total_ongkir}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan="3" style={{textAlign: 'right', fontWeight: "600"}}>
+                                                    <span>Total:</span>
+                                                </td>
+                                                <td>
+                                                    <span className="harga-promo">Rp {this.state.transaksi.total_harga + this.state.transaksi.total_ongkir}</span>
+                                                </td>    
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -200,7 +184,5 @@ class Transaction extends Component{
             </div>
         )
     }
-
 }
-
-export default Transaction
+export default connect("baseUrl, data_provinsi, data_kota, data_status", actions)(Transaction);

@@ -2,6 +2,7 @@ import createStore from "unistore";
 import axios from "axios";
 
 const initialState = {
+    baseUrl: "http://localhost:5000",
     api_key: "",
     email: "",
     password: "",
@@ -13,7 +14,9 @@ const initialState = {
     allItems: [],
     data_provinsi: '',
     data_kota: '',
-    data_kategori: ''
+    data_kategori: '',
+    tanggal: '',
+    data_status: ''
 }
 
 export const store = createStore(initialState)
@@ -27,41 +30,10 @@ export const actions = store => ({
         await store.setState({is_login: false});
     },
 
-    onKategoriChanged: function (state, e) {
-        console.log(e.target.value)
-        store.setState({
-            kategori: e.target.value
-        });
-        console.log(state.kategori)
-    },
-
-    onUrutanChanged: function (state, e) {
-        console.log(e.target.value)
-        store.setState({
-            urutan: e.target.value
-        });
-        console.log(state.urutan)
-    },
-
-    hitungOngkir: function (state, o, d, w) {
-        axios
-            .get("http://localhost:5000/ongkir", {
-                origin: 'Kabupaten Bandung',
-                destination: 'Kota Bandung',
-                weight: 1000
-            })
-            .then(function(response){
-                console.log(response.data)
-            })
-            .catch(function(error){
-                console.log(error)
-            })
-    },
-
     addToCart: function (state, item, qty_item) {
         const token = localStorage.getItem("token");
         axios
-            .post("http://localhost:5000/transdetail", {
+            .post(initialState.baseUrl + "/transdetail", {
                 product_id: item,
                 qty: qty_item
             }, {
@@ -73,7 +45,6 @@ export const actions = store => ({
                 if (response.data.status === 'gagal'){
                     alert(response.data.message)
                 }
-                console.log(response.data)
             })
             .catch(function(error){
                 console.log(error)
@@ -81,10 +52,20 @@ export const actions = store => ({
     },
 
     getKategori: function() {
-        axios({method: 'get', url: 'http://localhost:5000/category'})
+        axios({method: 'get', url: initialState.baseUrl + '/category'})
         .then(function(response){
             store.setState({data_kategori: response.data.kategori})
-            console.log(response.data.kategori)
+        })
+        .catch(function(error){
+            console.log(error)
+        })
+    },
+
+    getStatus: function(state, id) {
+        axios({method: 'get', url: initialState.baseUrl + '/status',
+            params: {'id': id}})
+        .then(function(response){
+            store.setState({data_status: response.data.status_transaksi})
         })
         .catch(function(error){
             console.log(error)
@@ -92,10 +73,9 @@ export const actions = store => ({
     },
 
     getProvinsi: function() {
-        axios({ method: 'get', url: 'http://localhost:5000/provinsi'})
+        axios({ method: 'get', url: initialState.baseUrl + '/provinsi'})
         .then(function(response){
             store.setState({data_provinsi: response.data.provinsi})
-            console.log(response.data.provinsi)
         })
         .catch(function(error){
             console.log(error)
@@ -103,10 +83,9 @@ export const actions = store => ({
     },
 
     getKota: function(state, provinsi) {
-        axios({ method: 'get', url: 'http://localhost:5000/kota', params: {'provinsi': provinsi}})
+        axios({ method: 'get', url: initialState.baseUrl + '/kota', params: {'provinsi': provinsi}})
         .then(function(response){
             store.setState({data_kota: response.data.kota})
-            console.log(response.data.kota)
         })
         .catch(function(error){
             console.log(error)
@@ -117,15 +96,24 @@ export const actions = store => ({
         const token = localStorage.getItem("token");
         axios({ 
             method: 'put', 
-            url: 'http://localhost:5000/transaction' + '/' + transID, 
+            url: initialState.baseUrl + '/transaction' + '/' + transID, 
             headers: {'Authorization': 'Bearer ' + token}, 
             data: {'payment_method': payment, 'alamat': alamat, 'kota': kota}})
         .then(function(response){
-            console.log(response.data)
         })
         .catch(function(error){
             console.log(error)
         })
-    }
+    },
 
+    formatDate: (state, date) => {
+        var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        const hasil = [year, month, day].join('-')
+        store.setState({tanggal: hasil})
+    }
 })

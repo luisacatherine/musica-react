@@ -2,22 +2,22 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import '../style/output.css';
 import KartuKategori from './KartuKategori';
-
-const urlMovie = 'https://api-todofancy.herokuapp.com/api/movies'
-const urlKategori = 'http://localhost:5000/category'
+import { connect } from "unistore/react";
+import { actions } from "../store";
 
 class KategoriDepan extends Component {
     constructor(props){
         super(props);
         this.state = {
-            listKategori: []
+            listKategori: [],
+            urlKategori: this.props.baseUrl + '/category'
         }
     }
 
     componentDidMount = () => {
         const self = this;
         axios
-            .get(urlKategori)
+            .get(this.state.urlKategori)
             .then(function(response){
                 self.setState({listKategori: response.data.kategori});
                 console.log(response.data);
@@ -40,7 +40,7 @@ class KategoriDepan extends Component {
                     <hr/>
                     <div className="row">
                         {listKategori.map((item, key) => {
-                            return <KartuKategori key={key} gambar={item.url}/>
+                            return <KartuKategori key={key} gambar={item.url} nama={item.nama_kategori}/>
                         })}
                     </div>
                 </div>
@@ -49,4 +49,4 @@ class KategoriDepan extends Component {
     }
 }
 
-export default KategoriDepan;
+export default connect("baseUrl", actions)(KategoriDepan);

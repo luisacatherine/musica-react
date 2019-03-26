@@ -2,24 +2,26 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import '../style/output.css'
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { connect } from 'unistore/react';
+import { actions } from '../store';
 
-const urlItems = 'http://localhost:5000/item'
-const urlPSeller = "http://localhost:5000/public/seller"
+
 class TransItems extends Component {
 
     constructor(props){
         super(props);
         this.state = {
             item: '',
-            seller_name: ''
+            seller_name: '',
+            urlItems: this.props.baseUrl + '/item',
+            urlPSeller: this.props.baseUrl + '/public/seller',
 		}
     }
 
     componentDidMount = () => {
         const self = this;
         axios
-            .get(urlItems + '/' + this.props.id)
+            .get(self.state.urlItems + '/' + this.props.id)
             .then(function(response){
                 self.setState({item: response.data.items})
             })
@@ -27,7 +29,7 @@ class TransItems extends Component {
                 console.log(error);
             });
         axios
-            .get(urlPSeller + '/' + this.props.seller)
+            .get(self.state.urlPSeller + '/' + this.props.seller)
             .then(function(response){
                 self.setState({seller_name: response.data.seller.name})
             })
@@ -72,4 +74,4 @@ TransItems.propTypes = {
     seller: PropTypes.number
 }
 
-export default TransItems
+export default connect("baseUrl", actions)(TransItems);
